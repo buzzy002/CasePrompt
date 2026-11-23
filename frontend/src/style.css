@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap');
+
+:root {
+  --bg-dark: #1a1613;
+  --kraft: #dec594;
+  --kraft-tab: #cbb384;
+  --ink-black: #141414;
+  --paper-white: #fcfcfc;
+  --stamp-red: #b93b2a;
+  --font-typewriter: 'Courier Prime', Courier, monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--bg-dark);
+  color: var(--ink-black);
+  font-family: var(--font-typewriter);
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+}
