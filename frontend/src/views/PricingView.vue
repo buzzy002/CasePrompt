@@ -32,6 +32,7 @@ const plans = ref([
       'Interrogatoires de témoins poussés par IA',
       'Historique complet des procès-verbaux'
     ],
+    
     buttonText: 'Souscrire l\'abonnement',
     highlight: true
   },
@@ -148,12 +149,12 @@ const plans = ref([
   flex-direction: column;
   justify-content: space-between;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  height: 100%;
 }
 
 .pricing-card.card-highlight {
   background-color: #f7e0b5;
   border: 2px solid #fff4db;
-  transform: translateY(-8px);
 }
 
 .card-stamp {
