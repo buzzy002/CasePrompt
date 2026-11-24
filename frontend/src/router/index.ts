@@ -12,7 +12,9 @@ const routes = [
   { path: '/tarifs', name: 'tarifs', component: PricingView },
   { path: '/connexion', name: 'login', component: AuthView, props: { initialMode: 'login' } },
   { path: '/inscription', name: 'register', component: AuthView, props: { initialMode: 'register' } },
-  { path: '/verifier-email', name: 'verify-email', component: VerificationView, props: { initialMode: 'verify-email' } }
+  { path: '/verifier-email', name: 'verify-email', component: VerificationView, props: { initialMode: 'verify-email' } },
+  { path: '/connexion', name: 'login', component: AuthView },
+  { path: '/inscription', name: 'register', component: AuthView }
 ]
 
 export const router = createRouter({

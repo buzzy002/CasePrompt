@@ -1,399 +1,145 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
-const emit = defineEmits<{
-  (e: 'success', user: { email: string; matricule?: string }): void
-  (e: 'close'): void
-}>()
+const router = useRouter()
+const authStore = useAuthStore()
 
-const isLogin = ref(true)
+const isLoginMode = ref(true)
+const email = ref('')
+const password = ref('')
+const confirmPassword = ref('')
 const errorMessage = ref('')
-const isLoading = ref(false)
-
-const loginForm = reactive({
-  email: '',
-  password: ''
-})
-
-const registerForm = reactive({
-  alias: '',
-  email: '',
-  matricule: '',
-  password: '',
-  confirmPassword: ''
-})
-
-function switchMode(loginMode: boolean) {
-  isLogin.value = loginMode
-  errorMessage.value = ''
-}
+const successMessage = ref('')
+const loading = ref(false)
 
 async function handleSubmit() {
   errorMessage.value = ''
-  isLoading.value = true
+  successMessage.value = ''
 
+  if (!isLoginMode.value && password.value !== confirmPassword.value) {
+    errorMessage.value = 'Les mots de passe ne correspondent pas.'
+    return
+  }
+
+  loading.value = true
   try {
-    if (isLogin.value) {
-      if (!loginForm.email || !loginForm.password) {
-        throw new Error('Veuillez renseigner vos identifiants.')
-      }
-      console.log('Connexion :', loginForm)
-      emit('success', { email: loginForm.email })
+    if (isLoginMode.value) {
+      await authStore.login(email.value, password.value)
+      // Redirection immédiate vers le jeu après connexion réussie
+      router.push('/enquetes')
     } else {
-      if (!registerForm.alias || !registerForm.email || !registerForm.password) {
-        throw new Error('Veuillez compléter tous les champs requis.')
-      }
-      if (registerForm.password !== registerForm.confirmPassword) {
-        throw new Error('Les mots de passe ne correspondent pas.')
-      }
-      console.log('Inscription :', registerForm)
-      emit('success', { email: registerForm.email, matricule: registerForm.matricule })
+      await authStore.register(email.value, password.value)
+      successMessage.value = 'Dossier créé. Vous pouvez maintenant vous identifier.'
+      isLoginMode.value = true
+      password.value = ''
+      confirmPassword.value = ''
     }
   } catch (err: any) {
-    errorMessage.value = err.message || 'Une erreur est survenue.'
+    errorMessage.value = err.response?.data?.message || 'Identifiants invalides ou service indisponible.'
   } finally {
-    isLoading.value = false
+    loading.value = false
   }
 }
 </script>
 
 <template>
-  <div class="auth-overlay">
-    <div class="dossier-card">
-      <div class="paperclip"></div>
+  <main class="min-h-[calc(100vh-80px)] flex items-center justify-center p-6 bg-noir font-mono">
+    <div class="relative w-full max-w-md bg-[#fbfbf9] border border-[#d9d2c5] shadow-2xl p-8 sm:p-10">
+      
+      <!-- Trombone décoratif -->
+      <div class="absolute -top-4 left-8 w-4 h-14 border-[2.5px] border-[#757b85] rounded-xl pointer-events-none shadow-sm"></div>
 
-      <div class="folder-tabs">
+      <!-- En-tête -->
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <p class="text-xs tracking-widest text-[#635747]">BUREAU DE POLICE</p>
+          <p class="text-xs text-[#8a7a67]">CONTRÔLE D'ACCÈS</p>
+        </div>
+        <div class="border-2 border-stamp text-stamp text-xs px-2 py-0.5 font-bold tracking-wider rotate-2">
+          {{ isLoginMode ? 'IDENTIFICATION' : 'OUVERTURE' }}
+        </div>
+      </div>
+
+      <h1 class="text-2xl text-noir mb-2 font-normal">
+        {{ isLoginMode ? 'Connexion au poste' : 'Création de matricule' }}
+      </h1>
+      <p class="text-xs text-[#5a5043] mb-6">
+        {{ isLoginMode ? 'Saisissez vos codes d\'habilitation pour ouvrir vos dossiers.' : 'Renseignez vos identifiants pour rejoindre la brigade.' }}
+      </p>
+
+      <!-- Onglets Connexion / Créer un compte -->
+      <div class="flex border-b border-[#d9d2c5] mb-6">
         <button
           type="button"
-          class="tab"
-          :class="{ active: isLogin }"
-          @click="switchMode(true)"
+          class="flex-1 pb-2 text-sm text-center border-b-2 font-bold cursor-pointer transition-colors"
+          :class="isLoginMode ? 'border-noir text-noir' : 'border-transparent text-[#8a7a67] hover:text-noir'"
+          @click="isLoginMode = true; errorMessage = ''; successMessage = ''"
         >
-          IDENTIFICATION
+          Se connecter
         </button>
         <button
           type="button"
-          class="tab"
-          :class="{ active: !isLogin }"
-          @click="switchMode(false)"
+          class="flex-1 pb-2 text-sm text-center border-b-2 font-bold cursor-pointer transition-colors"
+          :class="!isLoginMode ? 'border-noir text-noir' : 'border-transparent text-[#8a7a67] hover:text-noir'"
+          @click="isLoginMode = false; errorMessage = ''; successMessage = ''"
         >
-          OUVERTURE DE DOSSIER
+          Créer un compte
         </button>
       </div>
 
-      <div class="paper-sheet">
-        <div class="stamp-confidentiel">
-          {{ isLogin ? 'ACCÈS RESTREINT' : 'NOUVEL AGENT' }}
-        </div>
-
-        <div class="header">
-          <p class="reference">RÉF. DÉPARTEMENT 001 // BRIGADE CRIMINELLE</p>
-          <h2 class="title">
-            {{ isLogin ? 'Procédure de Connexion' : 'Enregistrement Enquêteur' }}
-          </h2>
-        </div>
-
-        <div v-if="errorMessage" class="error-banner">
-          [!] {{ errorMessage }}
-        </div>
-
-        <form v-if="isLogin" @submit.prevent="handleSubmit" class="auth-form">
-          <div class="field-group">
-            <label>Identifiant / Courriel :</label>
-            <input
-              type="email"
-              v-model="loginForm.email"
-              placeholder="inspecteur@caseprompt.local"
-              required
-            />
-          </div>
-
-          <div class="field-group">
-            <label>Code de sécurité (Mot de passe) :</label>
-            <input
-              type="password"
-              v-model="loginForm.password"
-              placeholder="••••••••••••"
-              required
-            />
-          </div>
-
-          <div class="actions">
-            <button type="submit" class="btn-submit" :disabled="isLoading">
-              {{ isLoading ? 'Vérification...' : "Valider l'accès" }}
-            </button>
-            <button type="button" class="link-switch" @click="switchMode(false)">
-              Pas encore matriculé ? Créez votre dossier
-            </button>
-          </div>
-        </form>
-
-        <form v-else @submit.prevent="handleSubmit" class="auth-form">
-          <div class="form-row">
-            <div class="field-group">
-              <label>Nom de code / Alias :</label>
-              <input
-                type="text"
-                v-model="registerForm.alias"
-                placeholder="Ex. L'Horloger"
-                required
-              />
-            </div>
-            <div class="field-group">
-              <label>Matricule (optionnel) :</label>
-              <input
-                type="text"
-                v-model="registerForm.matricule"
-                placeholder="CP-770"
-              />
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label>Courriel officiel :</label>
-            <input
-              type="email"
-              v-model="registerForm.email"
-              placeholder="agent@caseprompt.local"
-              required
-            />
-          </div>
-
-          <div class="form-row">
-            <div class="field-group">
-              <label>Mot de passe :</label>
-              <input
-                type="password"
-                v-model="registerForm.password"
-                placeholder="••••••••••••"
-                required
-              />
-            </div>
-            <div class="field-group">
-              <label>Confirmer le mot de passe :</label>
-              <input
-                type="password"
-                v-model="registerForm.confirmPassword"
-                placeholder="••••••••••••"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="actions">
-            <button type="submit" class="btn-submit" :disabled="isLoading">
-              {{ isLoading ? 'Création en cours...' : "Signer l'engagement" }}
-            </button>
-            <button type="button" class="link-switch" @click="switchMode(true)">
-              Déjà enregistré ? S'identifier
-            </button>
-          </div>
-        </form>
+      <!-- Bannières messages -->
+      <div v-if="errorMessage" class="bg-[#fbeae8] border-l-4 border-stamp text-stamp text-xs p-3 mb-4">
+        [!] {{ errorMessage }}
       </div>
+      <div v-if="successMessage" class="bg-[#e8f5e9] border-l-4 border-green-700 text-green-800 text-xs p-3 mb-4">
+        [✓] {{ successMessage }}
+      </div>
+
+      <!-- Formulaire -->
+      <form @submit.prevent="handleSubmit" class="flex flex-col gap-5">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-noir">Courriel officiel</label>
+          <input
+            v-model="email"
+            type="email"
+            required
+            placeholder="agent@caseprompt.org"
+            class="bg-transparent border-b-2 border-noir p-2 text-sm outline-none focus:border-stamp transition-colors"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-noir">Code secret</label>
+          <input
+            v-model="password"
+            type="password"
+            required
+            placeholder="••••••••••••"
+            class="bg-transparent border-b-2 border-noir p-2 text-sm outline-none focus:border-stamp transition-colors"
+          />
+        </div>
+
+        <div v-if="!isLoginMode" class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-noir">Confirmer le code</label>
+          <input
+            v-model="confirmPassword"
+            type="password"
+            required
+            placeholder="••••••••••••"
+            class="bg-transparent border-b-2 border-noir p-2 text-sm outline-none focus:border-stamp transition-colors"
+          />
+        </div>
+
+        <button
+          type="submit"
+          :disabled="loading"
+          class="mt-4 bg-noir text-cream py-3 text-sm font-bold tracking-wide cursor-pointer hover:bg-[#332d27] disabled:opacity-50 transition-colors"
+        >
+          {{ loading ? 'Vérification...' : (isLoginMode ? 'Valider et entrer' : 'Créer le dossier') }}
+        </button>
+      </form>
     </div>
-  </div>
+  </main>
 </template>
-
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
-
-.auth-overlay {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px 20px;
-  min-height: calc(100vh - 80px);
-  font-family: 'Courier Prime', Courier, monospace;
-}
-
-.dossier-card {
-  position: relative;
-  width: 100%;
-  max-width: 580px;
-}
-
-.paperclip {
-  position: absolute;
-  top: -16px;
-  left: 32px;
-  width: 16px;
-  height: 50px;
-  border: 2.5px solid #757b85;
-  border-radius: 12px;
-  background-color: transparent;
-  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.35);
-  z-index: 20;
-}
-
-.folder-tabs {
-  display: flex;
-  gap: 4px;
-  position: relative;
-  z-index: 1;
-}
-
-.tab {
-  background-color: #cbb384;
-  border: none;
-  padding: 10px 20px;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-  color: #3b3225;
-  cursor: pointer;
-  border-radius: 6px 6px 0 0;
-  transition: background-color 0.15s;
-}
-
-.tab.active {
-  background-color: #fcfcfc;
-  color: #141414;
-}
-
-.paper-sheet {
-  background-color: #fcfcfc;
-  padding: 40px 36px 32px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
-  border-radius: 0 8px 8px 8px;
-  position: relative;
-  color: #141414;
-}
-
-.stamp-confidentiel {
-  position: absolute;
-  top: 25px;
-  right: 25px;
-  border: 2px solid #b93b2a;
-  color: #b93b2a;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  letter-spacing: 1.5px;
-  transform: rotate(4deg);
-  opacity: 0.9;
-  user-select: none;
-}
-
-.header {
-  margin-bottom: 24px;
-}
-
-.reference {
-  font-size: 0.75rem;
-  color: #635747;
-  margin: 0 0 6px 0;
-  letter-spacing: 0.5px;
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: normal;
-  margin: 0;
-  letter-spacing: -0.5px;
-}
-
-.error-banner {
-  background-color: #fbeae8;
-  border-left: 3px solid #b93b2a;
-  color: #b93b2a;
-  padding: 8px 12px;
-  font-size: 0.85rem;
-  margin-bottom: 20px;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-row {
-  display: flex;
-  gap: 16px;
-}
-
-.form-row .field-group {
-  flex: 1;
-}
-
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-group label {
-  font-size: 0.85rem;
-  font-weight: bold;
-}
-
-.field-group input {
-  background: transparent;
-  border: none;
-  border-bottom: 1.5px solid #141414;
-  padding: 8px 4px;
-  font-family: inherit;
-  font-size: 0.95rem;
-  outline: none;
-  color: #141414;
-}
-
-.field-group input:focus {
-  border-bottom: 2px solid #b93b2a;
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 10px;
-}
-
-.btn-submit {
-  background-color: #1a1613;
-  color: #ffffff;
-  border: none;
-  padding: 12px;
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: bold;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: background-color 0.15s;
-}
-
-.btn-submit:hover:not(:disabled) {
-  background-color: #38312b;
-}
-
-.btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.link-switch {
-  background: none;
-  border: none;
-  color: #4b4132;
-  font-family: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  padding: 4px;
-}
-
-.link-switch:hover {
-  color: #141414;
-}
-
-@media (max-width: 600px) {
-  .form-row {
-    flex-direction: column;
-  }
-  .paper-sheet {
-    padding: 24px 18px;
-  }
-}
-</style>
