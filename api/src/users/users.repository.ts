@@ -10,6 +10,23 @@ const PUBLIC_FIELDS = { id: true, email: true, role: true } as const;
 export class UsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  findById(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: PUBLIC_FIELDS,
+    });
+  }
+
+  /** For login only: the user and the stored hash, or null for an unknown email. */
+  async findCredentials(
+    email: string,
+  ): Promise<{ user: User; passwordHash: string } | null> {
+    const found = await this.prisma.user.findUnique({ where: { email } });
+    if (!found) return null;
+    const { id, role, passwordHash } = found;
+    return { user: { id, email: found.email, role }, passwordHash };
+  }
+
   async create(email: string, passwordHash: string): Promise<User> {
     try {
       return await this.prisma.user.create({
@@ -26,5 +43,12 @@ export class UsersRepository {
       }
       throw err;
     }
+  }
+
+  findAll(): Promise<User[]> {
+    return this.prisma.user.findMany({
+      select: PUBLIC_FIELDS,
+      orderBy: { email: 'asc' },
+    });
   }
 }

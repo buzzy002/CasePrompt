@@ -6,3 +6,12 @@ export interface User {
   email: string;
   role: Role;
 }
+
+// Tells @nestjs/authentication what @CurrentUser() returns, and that sign-in
+// gives an access token alone (refreshToken: false in AppModule).
+declare module '@nestjs/authentication' {
+  interface AuthenticationTypes {
+    user: User;
+    refreshTokens: false;
+  }
+}

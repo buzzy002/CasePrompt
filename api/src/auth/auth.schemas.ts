@@ -11,3 +11,15 @@ export const signUpSchema = z.object({
     }),
 });
 export type SignUpDto = z.infer<typeof signUpSchema>;
+
+// No minimum length at login: a wrong password gets the same 401 as any other.
+export const loginSchema = z.object({
+  email: z.email({ error: 'Adresse email invalide' }),
+  password: z
+    .string({ error: 'Mot de passe obligatoire' })
+    .min(1, { error: 'Mot de passe obligatoire' })
+    .max(128, {
+      error: 'Le mot de passe doit contenir au plus 128 caractères',
+    }),
+});
+export type LoginDto = z.infer<typeof loginSchema>;
