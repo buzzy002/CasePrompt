@@ -5,6 +5,7 @@ import HowToPlayView from '../views/HowToPlayView.vue'
 import PricingView from '../views/PricingView.vue'
 import AuthView from '../views/AuthView.vue'
 import VerificationView from '../views/VerifyEmailView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
 
 const routes = [
   { 
@@ -15,7 +16,7 @@ const routes = [
     path: '/enquetes', 
     name: 'enquetes', 
     component: EnqueteView,
-    meta: { requiresAuth: true } // Route protégée
+    meta: { requiresAuth: true }
   },
   { 
     path: '/comment-jouer', 
@@ -43,6 +44,11 @@ const routes = [
     path: '/verifier-email', 
     name: 'verify-email', 
     component: VerificationView 
+  },
+  {
+    path: '/:pathMatch(.*)*', 
+    name: 'not-found', 
+    component: NotFoundView 
   }
 ]
 
