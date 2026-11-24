@@ -5,7 +5,7 @@ export interface AiPrompt {
   player: string;
 }
 
-
+// An abstract class rather than an interface: Nest needs a runtime value as injection token.
 export abstract class AiProvider {
   abstract playTurn(prompt: AiPrompt): Promise<AiAnswer>;
 }

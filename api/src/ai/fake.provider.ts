@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AiProvider } from './ai.provider.js';
 import type { AiAnswer } from './ai-answer.schema.js';
 
+/** Fixed answer, for development and tests. */
 @Injectable()
 export class FakeProvider extends AiProvider {
   playTurn(): Promise<AiAnswer> {

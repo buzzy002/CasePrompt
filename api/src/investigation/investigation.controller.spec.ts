@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AiModule } from '../ai/ai.module.js';
 import { InvestigationController } from './investigation.controller.js';
-import { InvestigationService } from '../investigation/investigation.service.js';
+import { InvestigationService } from './investigation.service.js';
 
 describe('InvestigationController', () => {
   let controller: InvestigationController;
