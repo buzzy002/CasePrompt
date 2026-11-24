@@ -1,12 +1,29 @@
-export async function sendDetectiveAction(action: string) {
-  const response = await fetch('http://localhost:3000/api/investigation/action', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action })
-  })
+import axios from 'axios'
+import { useAuthStore } from '../stores/auth'
 
-  if (!response.ok) {
-    throw new Error(`Erreur réseau : ${response.status}`)
+// 1. On utilise la variable d'environnement ou le fallback local
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+
+const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json'
   }
-  return await response.json()
+})
+
+// 2. Intercepteur : injecte automatiquement le token JWT s'il existe
+apiClient.interceptors.request.use((config) => {
+  const authStore = useAuthStore()
+  if (authStore.token) {
+    config.headers.Authorization = `Bearer ${authStore.token}`
+  }
+  return config
+})
+
+// 3. Envoi de l'action du joueur vers NestJS
+export async function sendDetectiveAction(action: string) {
+  const response = await apiClient.post('/api/investigation/action', { action })
+  return response.data
 }
+
+export default apiClient
