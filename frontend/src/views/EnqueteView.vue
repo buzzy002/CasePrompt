@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, computed, nextTick, watch, onBeforeUnmount } from 'vue'
+import { isAxiosError } from 'axios'
 import { sendDetectiveAction } from '../services/api'
 import BaseButton from '../components/common/BaseButton.vue'
 import PaperCard from '../components/common/PaperCard.vue'
@@ -64,6 +65,13 @@ const history = ref<PvEntry[]>([
   }
 ])
 
+// Prochain identifiant d'entrée
+let nextId = 3
+
+// Délai de "délibération" : nettoyé si on quitte la page
+let verdictTimer: ReturnType<typeof setTimeout> | undefined
+onBeforeUnmount(() => clearTimeout(verdictTimer))
+
 // Auto-scroll du PV dès que l'historique grandit
 watch(history, async () => {
   await nextTick()
@@ -81,27 +89,41 @@ const formattedDate = computed(() => {
   })
 })
 
+// Message adapté au type d'erreur
+function describeError(err: unknown): string {
+  if (isAxiosError(err)) {
+    if (!err.response) {
+      return '[Liaison radio interrompue : impossible de joindre le central]'
+    }
+    if (err.response.status === 429) {
+      return '[Le central est saturé : réessayez dans un instant]'
+    }
+  }
+  return '[Le central a rencontré une erreur : votre déclaration n\'a pas été enregistrée]'
+}
+
 // Envoi d'une déclaration d'action
 async function submitDeclaration() {
   const actionText = declaration.value.trim()
   if (!actionText || isLoading.value) return
 
-  declaration.value = ''
   isLoading.value = true
 
   try {
     const data = await sendDetectiveAction(actionText)
     history.value.push({
-      id: Date.now(),
+      id: nextId++,
       playerAction: actionText,
       iaNarrative: data.narrative,
       lootFound: data.loot
     })
+    // On ne vide le champ qu'en cas de succès : le texte n'est pas perdu si ça échoue
+    declaration.value = ''
   } catch (err) {
     history.value.push({
-      id: Date.now(),
+      id: nextId++,
       playerAction: actionText,
-      iaNarrative: '[Liaison radio interrompue : impossible de joindre le central]'
+      iaNarrative: describeError(err)
     })
   } finally {
     isLoading.value = false
@@ -114,9 +136,9 @@ async function submitAccusation() {
 
   isSubmittingVerdict.value = true
 
-  setTimeout(() => {
+  verdictTimer = setTimeout(() => {
     isSubmittingVerdict.value = false
-    
+
     // Scénario : Claire Delmas avec le Couteau
     if (accusation.value.suspectId === 'adjointe' && accusation.value.weapon === 'Couteau') {
       verdict.value = {
@@ -143,17 +165,25 @@ function reopenCase() {
 <template>
   <main class="w-[95%] max-w-[1400px] mx-auto my-3 mb-10 relative font-mono">
     <!-- Onglets du dossier kraft -->
-    <div class="flex gap-1">
-      <button 
+    <div class="flex gap-1" role="tablist" aria-label="Sections du dossier">
+      <button
+        id="tab-investigation"
         type="button"
+        role="tab"
+        :aria-selected="activeTab === 'investigation'"
+        aria-controls="dossier-panel"
         class="border-none py-2 px-4 sm:px-6 text-sm cursor-pointer rounded-t-md transition-colors"
         :class="activeTab === 'investigation' ? 'bg-[#dec594] font-bold text-[#141414]' : 'bg-[#cbb384] text-[#2b251d] hover:bg-[#dec594]'"
         @click="activeTab = 'investigation'"
       >
         AFFAIRE N°001
       </button>
-      <button 
+      <button
+        id="tab-resolution"
         type="button"
+        role="tab"
+        :aria-selected="activeTab === 'resolution'"
+        aria-controls="dossier-panel"
         class="border-none py-2 px-4 sm:px-6 text-sm cursor-pointer rounded-t-md transition-colors"
         :class="activeTab === 'resolution' ? 'bg-[#dec594] font-bold text-[#141414]' : 'bg-[#cbb384] text-[#2b251d] hover:bg-[#dec594]'"
         @click="activeTab = 'resolution'"
@@ -163,7 +193,12 @@ function reopenCase() {
     </div>
 
     <!-- CORPS DU DOSSIER KRAFT -->
-    <div class="bg-[#dec594] rounded-tr-xl rounded-b-xl p-4 sm:p-7 lg:p-8 grid grid-cols-1 lg:grid-cols-[1fr_390px] gap-6 lg:gap-9 shadow-2xl relative lg:min-h-[640px]">
+    <div
+      id="dossier-panel"
+      role="tabpanel"
+      :aria-labelledby="`tab-${activeTab}`"
+      class="bg-[#dec594] rounded-tr-xl rounded-b-xl p-4 sm:p-7 lg:p-8 grid grid-cols-1 lg:grid-cols-[1fr_390px] gap-6 lg:gap-9 shadow-2xl relative lg:min-h-[640px]"
+    >
 
       <!-- ================= VUE 1 : ENQUÊTE EN COURS ================= -->
       <template v-if="activeTab === 'investigation'">
@@ -173,7 +208,7 @@ function reopenCase() {
               <p class="text-sm text-[#4b4132] mb-1">Bureau du PDG · nuit du {{ formattedDate }}</p>
               <h1 class="text-3xl font-normal tracking-tight m-0">Mort au dernier étage</h1>
             </div>
-            <div class="border-2 border-stamp text-stamp px-3.5 py-1.5 text-base font-bold rotate-3 tracking-widest rounded-sm">
+            <div class="border-2 border-stamp-dark text-stamp-dark px-3.5 py-1.5 text-base font-bold rotate-3 tracking-widest rounded-sm">
               EN COURS
             </div>
           </div>
@@ -190,15 +225,16 @@ function reopenCase() {
           <div class="mt-6">
             <h3 class="text-base font-normal mb-3">Scellés & Pièces saisies</h3>
             <div class="flex gap-3 flex-wrap">
-              <label 
-                v-for="item in scelles" 
-                :key="item.id" 
-                class="bg-white rounded-full py-1.5 px-4 flex items-center gap-2 text-xs font-bold cursor-pointer shadow-sm"
+              <label
+                v-for="item in scelles"
+                :key="item.id"
+                class="bg-white rounded-full py-1.5 px-4 flex items-center gap-2 text-xs font-bold cursor-pointer shadow-sm focus-within:ring-2 focus-within:ring-noir"
               >
-                <input type="checkbox" v-model="item.checked" class="hidden" />
-                <span 
+                <input type="checkbox" v-model="item.checked" class="sr-only" />
+                <span
                   class="w-3 h-3 border border-[#222] rounded-full inline-block"
                   :class="{ 'bg-[#222]': item.checked }"
+                  aria-hidden="true"
                 ></span>
                 <span>{{ item.label }}</span>
               </label>
@@ -215,26 +251,33 @@ function reopenCase() {
           <PaperCard class="h-full flex flex-col justify-between min-h-[420px] lg:min-h-[600px] lg:rotate-[0.8deg]">
             <h2 class="text-center text-lg tracking-widest my-2 mb-5">PROCÈS-VERBAL</h2>
 
-            <div ref="pvScrollContainer" class="flex-grow text-xs leading-relaxed overflow-y-auto max-h-[360px] sm:max-h-[480px] scroll-smooth pr-1">
+            <div
+              ref="pvScrollContainer"
+              role="log"
+              aria-live="polite"
+              aria-label="Procès-verbal"
+              class="flex-grow text-xs leading-relaxed overflow-y-auto max-h-[360px] sm:max-h-[480px] scroll-smooth pr-1"
+            >
               <div v-for="entry in history" :key="entry.id" class="mb-5">
                 <p><strong>— Vous :</strong> {{ entry.playerAction }}</p>
                 <p class="my-2 text-[#333]">{{ entry.iaNarrative }}</p>
-                <p v-if="entry.lootFound" class="text-stamp font-bold">{{ entry.lootFound }}</p>
+                <p v-if="entry.lootFound" class="text-stamp-dark font-bold">{{ entry.lootFound }}</p>
               </div>
 
               <div v-if="isLoading" class="mb-5 italic text-[#666]">
                 Enregistrement de la déposition...
               </div>
 
-              <div class="inline-block border border-stamp text-stamp text-[10px] px-2 py-0.5 -rotate-6 tracking-wide mt-2">
+              <div class="inline-block border border-stamp-dark text-stamp-dark text-[10px] px-2 py-0.5 -rotate-6 tracking-wide mt-2">
                 RÉDIGÉ PAR IA
               </div>
             </div>
 
             <div class="border-t border-dashed border-[#888] pt-3.5 mt-4">
-              <label class="block text-xs font-bold mb-2">Déclaration suivante :</label>
+              <label for="declaration" class="block text-xs font-bold mb-2">Déclaration suivante :</label>
               <div class="flex gap-2 items-end">
                 <input
+                  id="declaration"
                   type="text"
                   v-model="declaration"
                   placeholder="J'examine l'armoire..."
@@ -242,8 +285,8 @@ function reopenCase() {
                   @keyup.enter="submitDeclaration"
                   class="flex-grow bg-transparent border-b-2 border-noir p-1.5 text-xs outline-none focus:border-stamp transition-colors"
                 />
-                <BaseButton 
-                  :disabled="isLoading" 
+                <BaseButton
+                  :disabled="isLoading"
                   @click="submitDeclaration"
                   class="text-xs py-1.5 px-3"
                 >
@@ -270,13 +313,14 @@ function reopenCase() {
 
                 <form @submit.prevent="submitAccusation" class="flex flex-col gap-6">
                   <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold">1. Suspect déféré devant la justice :</label>
-                    <select 
-                      v-model="accusation.suspectId" 
+                    <label for="accusation-suspect" class="text-xs font-bold">1. Suspect déféré devant la justice :</label>
+                    <select
+                      id="accusation-suspect"
+                      v-model="accusation.suspectId"
                       required
                       class="bg-[#f3eedf] border border-[#73644f] p-2.5 text-sm outline-none rounded-sm"
                     >
-                      <option value="" disabled selected>Sélectionnez un suspect interrogé...</option>
+                      <option value="" disabled>Sélectionnez un suspect interrogé...</option>
                       <option v-for="s in suspects" :key="s.id" :value="s.id">
                         {{ s.name }} (Mobile : {{ s.motive }})
                       </option>
@@ -284,13 +328,14 @@ function reopenCase() {
                   </div>
 
                   <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold">2. Pièce à conviction décisive :</label>
-                    <select 
-                      v-model="accusation.weapon" 
+                    <label for="accusation-weapon" class="text-xs font-bold">2. Pièce à conviction décisive :</label>
+                    <select
+                      id="accusation-weapon"
+                      v-model="accusation.weapon"
                       required
                       class="bg-[#f3eedf] border border-[#73644f] p-2.5 text-sm outline-none rounded-sm"
                     >
-                      <option value="" disabled selected>Associez un scellé découvert sur les lieux...</option>
+                      <option value="" disabled>Associez un scellé découvert sur les lieux...</option>
                       <option v-for="item in scelles" :key="item.id" :value="item.label">
                         {{ item.label }}
                       </option>
@@ -298,10 +343,11 @@ function reopenCase() {
                   </div>
 
                   <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold">3. Synthèse des charges :</label>
-                    <textarea 
-                      v-model="accusation.motiveSummary" 
-                      rows="4" 
+                    <label for="accusation-summary" class="text-xs font-bold">3. Synthèse des charges :</label>
+                    <textarea
+                      id="accusation-summary"
+                      v-model="accusation.motiveSummary"
+                      rows="4"
                       placeholder="Expliquez comment le suspect a pu pénétrer dans le bureau et dissimuler son geste..."
                       required
                       class="bg-[#f3eedf] border border-[#73644f] p-2.5 text-sm outline-none rounded-sm resize-y"
@@ -309,9 +355,9 @@ function reopenCase() {
                   </div>
 
                   <div class="flex justify-center mt-3">
-                    <BaseButton 
-                      type="submit" 
-                      variant="danger" 
+                    <BaseButton
+                      type="submit"
+                      variant="danger"
                       :disabled="isSubmittingVerdict"
                       class="py-3 px-8 text-sm uppercase tracking-wider"
                     >
@@ -323,7 +369,7 @@ function reopenCase() {
 
               <!-- 2B : Affichage du Verdict -->
               <div v-else class="text-center py-6">
-                <div 
+                <div
                   class="inline-block py-2 px-6 text-xl font-bold tracking-widest mb-6"
                   :class="verdict.isSolved ? 'border-4 border-green-700 text-green-700 -rotate-2' : 'border-4 border-stamp text-stamp rotate-2'"
                 >

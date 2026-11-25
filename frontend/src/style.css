@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
 @import "tailwindcss";
 
-/* Configuration du thème pour Tailwind v4 */
-@theme {
+/* Thème Tailwind v4  */
+@theme static {
   --color-bg-dark: #1a1613;
   --color-noir: #141414;
   --color-cream: #f4eedb;
@@ -10,27 +10,9 @@
   --color-kraft-dark: #cbb384;
   --color-paper: #fcfcfc;
   --color-stamp: #b93b2a;
+  --color-stamp-dark: #932b1e;
 
-  /* Aliases rétro-compatibles si d'autres composants les utilisent */
-  --color-ink-black: #141414;
-  --color-stamp-red: #b93b2a;
-  --color-kraft-tab: #cbb384;
-
-  /* Typographie */
   --font-mono: 'Courier Prime', Courier, monospace;
-  --font-typewriter: 'Courier Prime', Courier, monospace;
-  --font-stamp: 'Special Elite', cursive;
-}
-
-/* styles de base */
-:root {
-  --bg-dark: #1a1613;
-  --kraft: #dec594;
-  --kraft-dark: #cbb384;
-  --noir: #141414;
-  --cream: #f4eedb;
-  --paper: #fcfcfc;
-  --stamp: #b93b2a;
 }
 
 *, *::before, *::after {
@@ -42,9 +24,9 @@ html, body {
   padding: 0;
   min-height: 100vh;
   min-height: 100dvh;
-  background-color: var(--bg-dark);
-  color: var(--noir);
-  font-family: var(--font-typewriter);
+  background-color: var(--color-bg-dark);
+  color: var(--color-noir);
+  font-family: var(--font-mono);
 }
 
 #app {

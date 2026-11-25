@@ -58,15 +58,14 @@ export const router = createRouter({
 })
 
 // Redirection vers /connexion si l'agent n'a pas de session
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to) => {
   const authStore = useAuthStore()
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/connexion')
-  } else if ((to.name === 'login' || to.name === 'register') && authStore.isAuthenticated) {
-    next('/enquetes')
-  } else {
-    next()
+    return {name: 'login',query: { redirect: to.fullPath }}
+  } 
+  if ((to.name === 'login' || to.name === 'register') && authStore.isAuthenticated) {
+    return '/enquetes'
   }
   
 })

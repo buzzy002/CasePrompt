@@ -13,7 +13,7 @@ const router = useRouter()
         <div class="flex justify-between items-start mb-6">
           <div>
             <p class="text-xs tracking-widest text-[#635747]">ARCHIVES DU CENTRAL</p>
-            <p class="text-xs text-[#8a7a67]">AVIS DE RECHERCHE</p>
+            <p class="text-xs text-[#635747]">AVIS DE RECHERCHE</p>
           </div>
           <div class="border-2 border-stamp text-stamp text-xs px-2 py-0.5 font-bold tracking-wider rotate-3">
             NON RÉPERTORIÉ

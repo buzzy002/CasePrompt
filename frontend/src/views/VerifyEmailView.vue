@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import { isAxiosError } from 'axios'
+import apiClient from '../services/api'
 import PaperCard from '../components/common/PaperCard.vue'
 import BaseButton from '../components/common/BaseButton.vue'
 
@@ -12,10 +13,11 @@ const loading = ref(true)
 const success = ref(false)
 const errorMessage = ref('')
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-
 onMounted(async () => {
   const token = route.query.token as string
+
+  // Retire le token de l'URL et de l'historique du navigateur
+  router.replace({ query: {} })
 
   if (!token) {
     loading.value = false
@@ -24,10 +26,13 @@ onMounted(async () => {
   }
 
   try {
-    await axios.get(`${API_URL}/auth/verify-email`, { params: { token } })
+    await apiClient.get('/auth/verify-email', { params: { token } })
     success.value = true
-  } catch (err: any) {
-    errorMessage.value = err.response?.data?.message || 'Ce mandat d\'activation est périmé ou non valide.'
+  } catch (err: unknown) {
+    const message = isAxiosError(err) ? err.response?.data?.message : undefined
+    errorMessage.value =
+      (Array.isArray(message) ? message.join(' ') : message) ||
+      'Ce mandat d\'activation est périmé ou non valide.'
   } finally {
     loading.value = false
   }

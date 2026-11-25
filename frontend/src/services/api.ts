@@ -20,11 +20,11 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
-// 3. Intercepteur Réponse : déconnexion automatique sur 401 (sauf sur les pages d'auth)
+// 3. Intercepteur Réponse : déconnexion automatique sur 401 (sauf sur les routes /auth/*)
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const isAuthRoute = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register')
+    const isAuthRoute = error.config?.url?.startsWith('/auth/')
 
     if (error.response?.status === 401 && !isAuthRoute) {
       const authStore = useAuthStore()
