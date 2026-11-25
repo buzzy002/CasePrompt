@@ -6,49 +6,56 @@ import PricingView from '../views/PricingView.vue'
 import AuthView from '../views/AuthView.vue'
 import VerificationView from '../views/VerifyEmailView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
+import ProfileView from '../views/ProfileView.vue'
 
 const routes = [
-  { 
-    path: '/', 
-    redirect: '/enquetes' 
+  {
+    path: '/',
+    redirect: '/enquetes'
   },
-  { 
-    path: '/enquetes', 
-    name: 'enquetes', 
+  {
+    path: '/enquetes',
+    name: 'enquetes',
     component: EnqueteView,
     meta: { requiresAuth: true }
   },
-  { 
-    path: '/comment-jouer', 
-    name: 'how-to-play', 
-    component: HowToPlayView 
-  },
-  { 
-    path: '/tarifs', 
-    name: 'tarifs', 
-    component: PricingView 
-  },
-  { 
-    path: '/connexion', 
-    name: 'login', 
-    component: AuthView, 
-    props: { initialMode: 'login' } 
-  },
-  { 
-    path: '/inscription', 
-    name: 'register', 
-    component: AuthView, 
-    props: { initialMode: 'register' } 
-  },
-  { 
-    path: '/verifier-email', 
-    name: 'verify-email', 
-    component: VerificationView 
+  {
+    path: '/profil',
+    name: 'profile',
+    component: ProfileView,
+    meta: { requiresAuth: true }
   },
   {
-    path: '/:pathMatch(.*)*', 
-    name: 'not-found', 
-    component: NotFoundView 
+    path: '/comment-jouer',
+    name: 'how-to-play',
+    component: HowToPlayView
+  },
+  {
+    path: '/tarifs',
+    name: 'tarifs',
+    component: PricingView
+  },
+  {
+    path: '/connexion',
+    name: 'login',
+    component: AuthView,
+    props: { initialMode: 'login' }
+  },
+  {
+    path: '/inscription',
+    name: 'register',
+    component: AuthView,
+    props: { initialMode: 'register' }
+  },
+  {
+    path: '/verifier-email',
+    name: 'verify-email',
+    component: VerificationView
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: NotFoundView
   }
 ]
 
@@ -62,10 +69,9 @@ router.beforeEach((to) => {
   const authStore = useAuthStore()
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return {name: 'login',query: { redirect: to.fullPath }}
-  } 
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
   if ((to.name === 'login' || to.name === 'register') && authStore.isAuthenticated) {
     return '/enquetes'
   }
-  
 })
