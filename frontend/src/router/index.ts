@@ -63,7 +63,10 @@ router.beforeEach((to, _from, next) => {
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/connexion')
+  } else if ((to.name === 'login' || to.name === 'register') && authStore.isAuthenticated) {
+    next('/enquetes')
   } else {
     next()
   }
+  
 })

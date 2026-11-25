@@ -1,21 +1,46 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import BaseButton from '../components/common/BaseButton.vue'
 import BaseInput from '../components/common/BaseInput.vue'
 import PaperCard from '../components/common/PaperCard.vue'
 
+const props = withDefaults(
+  defineProps<{
+    initialMode?: 'login' | 'register'
+  }>(),
+  {
+    initialMode: 'login'
+  }
+)
+
 const router = useRouter()
 const authStore = useAuthStore()
 
-const isLoginMode = ref(true)
+const isLoginMode = ref(props.initialMode === 'login')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
 const loading = ref(false)
+
+// Met à jour le formulaire si l'utilisateur navigue entre /connexion et /inscription sans rechargement
+watch(
+  () => props.initialMode,
+  (newMode) => {
+    isLoginMode.value = newMode === 'login'
+    errorMessage.value = ''
+    successMessage.value = ''
+  }
+)
+
+function setMode(login: boolean) {
+  isLoginMode.value = login
+  errorMessage.value = ''
+  successMessage.value = ''
+}
 
 async function handleSubmit() {
   errorMessage.value = ''
@@ -33,7 +58,7 @@ async function handleSubmit() {
       router.push('/enquetes')
     } else {
       await authStore.register(email.value, password.value)
-      successMessage.value = 'Dossier créé. Vous pouvez maintenant vous identifier.'
+      successMessage.value = 'Pré-inscription validée. Consultez votre boîte mail pour activer votre matricule avant de vous connecter.'
       isLoginMode.value = true
       password.value = ''
       confirmPassword.value = ''
@@ -47,7 +72,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <main class="min-h-[calc(100vh-80px)] flex items-center justify-center p-6 bg-noir font-mono">
+  <main class="min-h-[calc(100dvh-80px)] flex items-center justify-center p-6 bg-noir font-mono">
     <div class="w-full max-w-md">
       <PaperCard>
         <div class="flex justify-between items-start mb-6">
@@ -72,7 +97,7 @@ async function handleSubmit() {
             type="button"
             class="flex-1 pb-2 text-sm text-center border-b-2 font-bold cursor-pointer transition-colors"
             :class="isLoginMode ? 'border-noir text-noir' : 'border-transparent text-[#8a7a67] hover:text-noir'"
-            @click="isLoginMode = true; errorMessage = ''; successMessage = ''"
+            @click="setMode(true)"
           >
             Se connecter
           </button>
@@ -80,7 +105,7 @@ async function handleSubmit() {
             type="button"
             class="flex-1 pb-2 text-sm text-center border-b-2 font-bold cursor-pointer transition-colors"
             :class="!isLoginMode ? 'border-noir text-noir' : 'border-transparent text-[#8a7a67] hover:text-noir'"
-            @click="isLoginMode = false; errorMessage = ''; successMessage = ''"
+            @click="setMode(false)"
           >
             Créer un compte
           </button>
