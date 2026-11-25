@@ -146,7 +146,7 @@ function reopenCase() {
     <div class="flex gap-1">
       <button 
         type="button"
-        class="border-none py-2 px-6 text-sm cursor-pointer rounded-t-md transition-colors"
+        class="border-none py-2 px-4 sm:px-6 text-sm cursor-pointer rounded-t-md transition-colors"
         :class="activeTab === 'investigation' ? 'bg-[#dec594] font-bold text-[#141414]' : 'bg-[#cbb384] text-[#2b251d] hover:bg-[#dec594]'"
         @click="activeTab = 'investigation'"
       >
@@ -154,7 +154,7 @@ function reopenCase() {
       </button>
       <button 
         type="button"
-        class="border-none py-2 px-6 text-sm cursor-pointer rounded-t-md transition-colors"
+        class="border-none py-2 px-4 sm:px-6 text-sm cursor-pointer rounded-t-md transition-colors"
         :class="activeTab === 'resolution' ? 'bg-[#dec594] font-bold text-[#141414]' : 'bg-[#cbb384] text-[#2b251d] hover:bg-[#dec594]'"
         @click="activeTab = 'resolution'"
       >
@@ -163,7 +163,7 @@ function reopenCase() {
     </div>
 
     <!-- CORPS DU DOSSIER KRAFT -->
-    <div class="bg-[#dec594] rounded-tr-xl rounded-b-xl p-7 lg:p-8 grid grid-cols-1 lg:grid-cols-[1fr_390px] gap-9 shadow-2xl relative min-h-[640px]">
+    <div class="bg-[#dec594] rounded-tr-xl rounded-b-xl p-4 sm:p-7 lg:p-8 grid grid-cols-1 lg:grid-cols-[1fr_390px] gap-6 lg:gap-9 shadow-2xl relative lg:min-h-[640px]">
 
       <!-- ================= VUE 1 : ENQUÊTE EN COURS ================= -->
       <template v-if="activeTab === 'investigation'">
@@ -178,7 +178,7 @@ function reopenCase() {
             </div>
           </div>
 
-          <div class="bg-[#12100e] rounded min-h-[480px] flex items-center justify-center p-10 border-2 border-[#4a3e2e]">
+          <div class="bg-[#12100e] rounded min-h-[240px] sm:min-h-[480px] flex items-center justify-center p-6 sm:p-10 border-2 border-[#4a3e2e]">
             <div class="text-[#d1b88a] text-center max-w-[520px]">
               <p class="text-lg mb-3">[ Image de la scène ]</p>
               <p class="text-sm leading-relaxed opacity-90">
@@ -212,10 +212,10 @@ function reopenCase() {
 
         <!-- Procès-Verbal -->
         <aside class="relative">
-          <PaperCard class="h-full flex flex-col justify-between min-h-[600px] lg:rotate-[0.8deg]">
+          <PaperCard class="h-full flex flex-col justify-between min-h-[420px] lg:min-h-[600px] lg:rotate-[0.8deg]">
             <h2 class="text-center text-lg tracking-widest my-2 mb-5">PROCÈS-VERBAL</h2>
 
-            <div ref="pvScrollContainer" class="flex-grow text-xs leading-relaxed overflow-y-auto max-h-[480px] scroll-smooth pr-1">
+            <div ref="pvScrollContainer" class="flex-grow text-xs leading-relaxed overflow-y-auto max-h-[360px] sm:max-h-[480px] scroll-smooth pr-1">
               <div v-for="entry in history" :key="entry.id" class="mb-5">
                 <p><strong>— Vous :</strong> {{ entry.playerAction }}</p>
                 <p class="my-2 text-[#333]">{{ entry.iaNarrative }}</p>

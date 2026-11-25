@@ -7,7 +7,7 @@ const router = useRouter()
 </script>
 
 <template>
-  <main class="min-h-[calc(100vh-80px)] flex items-center justify-center p-6 bg-noir font-mono">
+  <main class="flex-1 flex items-center justify-center p-6 bg-noir font-mono">
     <div class="w-full max-w-md">
       <PaperCard>
         <div class="flex justify-between items-start mb-6">
