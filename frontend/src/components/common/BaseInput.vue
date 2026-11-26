@@ -1,30 +1,30 @@
 <script setup lang="ts">
-import { useId } from 'vue'
+import { useId } from 'vue';
 
 // Les attributs (autocomplete, name, minlength...) vont sur l'<input>
-defineOptions({ inheritAttrs: false })
+defineOptions({ inheritAttrs: false });
 
 interface Props {
-  modelValue: string
-  label?: string
-  type?: string
-  placeholder?: string
-  required?: boolean
-  disabled?: boolean
+  modelValue: string;
+  label?: string;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
   type: 'text',
   placeholder: '',
   required: false,
-  disabled: false
-})
+  disabled: false,
+});
 
 defineEmits<{
-  (e: 'update:modelValue', value: string): void
-}>()
+  (e: 'update:modelValue', value: string): void;
+}>();
 
-const id = useId()
+const id = useId();
 </script>
 
 <template>
@@ -40,7 +40,9 @@ const id = useId()
       :placeholder="placeholder"
       :required="required"
       :disabled="disabled"
-      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+      @input="
+        $emit('update:modelValue', ($event.target as HTMLInputElement).value)
+      "
       class="bg-transparent border-b-2 border-noir p-2 text-sm outline-none focus:border-stamp transition-colors disabled:opacity-50"
     />
   </div>

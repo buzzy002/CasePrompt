@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Thème Tailwind v4  */
 @theme static {
@@ -11,15 +11,19 @@
   --color-paper: #fcfcfc;
   --color-stamp: #b93b2a;
   --color-stamp-dark: #932b1e;
+  --color-stamp-light: #cf5a48;
 
   --font-mono: 'Courier Prime', Courier, monospace;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   min-height: 100vh;

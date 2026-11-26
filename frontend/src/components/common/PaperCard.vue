@@ -1,15 +1,17 @@
 <script setup lang="ts">
 interface Props {
-  hasPaperclip?: boolean
+  hasPaperclip?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
-  hasPaperclip: true
-})
+  hasPaperclip: true,
+});
 </script>
 
 <template>
-  <div class="relative w-full bg-[#fbfbf9] border border-[#d9d2c5] shadow-2xl p-8 sm:p-10 font-mono">
+  <div
+    class="relative w-full bg-[#fbfbf9] border border-[#d9d2c5] shadow-2xl p-8 sm:p-10 font-mono"
+  >
     <!-- Trombone rétro optionnel -->
     <div
       v-if="hasPaperclip"

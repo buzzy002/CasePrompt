@@ -1,32 +1,35 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from './stores/auth'
+import { ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from './stores/auth';
 
-const authStore = useAuthStore()
-const router = useRouter()
-const route = useRoute()
+const authStore = useAuthStore();
+const router = useRouter();
+const route = useRoute();
 
-const menuOpen = ref(false)
+const menuOpen = ref(false);
 
-const navLinks = [
+const navLinks = computed(() => [
   { to: '/enquetes', label: 'Enquêtes' },
   { to: '/comment-jouer', label: 'Comment jouer' },
-  { to: '/tarifs', label: 'Tarifs' }
-]
+  { to: '/tarifs', label: 'Tarifs' },
+  ...(authStore.isAuthenticated
+    ? [{ to: '/profil', label: 'Mon profil' }]
+    : []),
+]);
 
 // Referme le menu mobile à chaque changement de page
 watch(
   () => route.fullPath,
   () => {
-    menuOpen.value = false
-  }
-)
+    menuOpen.value = false;
+  },
+);
 
 function logout() {
-  authStore.clearSession()
-  menuOpen.value = false
-  router.push('/connexion')
+  authStore.clearSession();
+  menuOpen.value = false;
+  router.push('/connexion');
 }
 </script>
 
@@ -35,12 +38,18 @@ function logout() {
     <header class="relative bg-noir text-cream" @keydown.esc="menuOpen = false">
       <div class="flex justify-between items-center px-4 sm:px-6 lg:px-12 py-4">
         <div class="flex items-center gap-8">
-          <router-link to="/enquetes" class="text-xl tracking-wider text-cream no-underline">
+          <router-link
+            to="/enquetes"
+            class="text-xl tracking-wider text-cream no-underline"
+          >
             Case Prompt <span class="animate-pulse">_</span>
           </router-link>
 
           <!-- Navigation desktop -->
-          <nav class="hidden md:flex gap-6 text-sm" aria-label="Navigation principale">
+          <nav
+            class="hidden md:flex gap-6 text-sm"
+            aria-label="Navigation principale"
+          >
             <router-link
               v-for="link in navLinks"
               :key="link.to"
@@ -55,7 +64,10 @@ function logout() {
         <!-- Actions desktop -->
         <div class="hidden md:flex items-center gap-6 text-sm">
           <template v-if="!authStore.isAuthenticated">
-            <router-link to="/connexion" class="text-cream no-underline hover:underline">
+            <router-link
+              to="/connexion"
+              class="text-cream no-underline hover:underline"
+            >
               Se connecter
             </router-link>
             <router-link

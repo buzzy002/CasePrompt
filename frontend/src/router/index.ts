@@ -1,77 +1,92 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import EnqueteView from '../views/EnqueteView.vue'
-import HowToPlayView from '../views/HowToPlayView.vue'
-import PricingView from '../views/PricingView.vue'
-import AuthView from '../views/AuthView.vue'
-import VerificationView from '../views/VerifyEmailView.vue'
-import NotFoundView from '../views/NotFoundView.vue'
-import ProfileView from '../views/ProfileView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
 
-const routes = [
+// Chargement paresseux : chaque vue est téléchargée seulement quand on la visite
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/enquetes'
+    redirect: '/enquetes',
   },
   {
     path: '/enquetes',
     name: 'enquetes',
-    component: EnqueteView,
-    meta: { requiresAuth: true }
+    component: () => import('../views/EnqueteView.vue'),
+    meta: { requiresAuth: true, title: 'Enquêtes' },
   },
   {
     path: '/profil',
     name: 'profile',
-    component: ProfileView,
-    meta: { requiresAuth: true }
+    component: () => import('../views/ProfileView.vue'),
+    meta: { requiresAuth: true, title: 'Profil' },
   },
   {
     path: '/comment-jouer',
     name: 'how-to-play',
-    component: HowToPlayView
+    component: () => import('../views/HowToPlayView.vue'),
+    meta: { title: 'Comment jouer' },
   },
   {
     path: '/tarifs',
     name: 'tarifs',
-    component: PricingView
+    component: () => import('../views/PricingView.vue'),
+    meta: { title: 'Tarifs' },
   },
   {
     path: '/connexion',
     name: 'login',
-    component: AuthView,
-    props: { initialMode: 'login' }
+    component: () => import('../views/AuthView.vue'),
+    props: { initialMode: 'login' },
+    meta: { title: 'Connexion' },
   },
   {
     path: '/inscription',
     name: 'register',
-    component: AuthView,
-    props: { initialMode: 'register' }
+    component: () => import('../views/AuthView.vue'),
+    props: { initialMode: 'register' },
+    meta: { title: 'Inscription' },
   },
   {
     path: '/verifier-email',
     name: 'verify-email',
-    component: VerificationView
+    component: () => import('../views/VerifyEmailView.vue'),
+    meta: { title: 'Vérification de l\'e-mail' },
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    component: NotFoundView
-  }
-]
+    component: () => import('../views/NotFoundView.vue'),
+    meta: { title: 'Page introuvable' },
+  },
+];
 
 export const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+  // Revient en haut de page à chaque navigation
+  scrollBehavior() {
+    return { top: 0 };
+  },
+});
 
 // Redirection vers /connexion si l'agent n'a pas de session
 router.beforeEach((to) => {
-  const authStore = useAuthStore()
+  const authStore = useAuthStore();
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return { name: 'login', query: { redirect: to.fullPath } }
+    return { name: 'login', query: { redirect: to.fullPath } };
   }
-  if ((to.name === 'login' || to.name === 'register') && authStore.isAuthenticated) {
-    return '/enquetes'
+  if (
+    (to.name === 'login' || to.name === 'register') &&
+    authStore.isAuthenticated
+  ) {
+    return '/enquetes';
   }
-})
+});
+
+// Titre de l'onglet du navigateur selon la page
+router.afterEach((to) => {
+  document.title = to.meta.title
+    ? `${to.meta.title} · Case Prompt`
+    : 'Case Prompt';
+});

@@ -1,19 +1,19 @@
 <script setup lang="ts">
 interface Props {
-  variant?: 'primary' | 'danger' | 'kraft'
-  disabled?: boolean
-  type?: 'button' | 'submit' | 'reset'
+  variant?: 'primary' | 'danger' | 'kraft';
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 withDefaults(defineProps<Props>(), {
   variant: 'primary',
   disabled: false,
-  type: 'button'
-})
+  type: 'button',
+});
 
 defineEmits<{
-  (e: 'click', event: MouseEvent): void
-}>()
+  (e: 'click', event: MouseEvent): void;
+}>();
 </script>
 
 <template>
@@ -25,7 +25,7 @@ defineEmits<{
     :class="{
       'bg-noir text-cream hover:bg-[#332d27]': variant === 'primary',
       'bg-stamp text-white hover:bg-[#9c2e20]': variant === 'danger',
-      'bg-kraft text-noir hover:bg-kraft-dark': variant === 'kraft'
+      'bg-kraft text-noir hover:bg-kraft-dark': variant === 'kraft',
     }"
   >
     <slot />

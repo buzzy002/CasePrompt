@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import PaperCard from '../components/common/PaperCard.vue'
-import BaseButton from '../components/common/BaseButton.vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import PaperCard from '../components/common/PaperCard.vue';
+import BaseButton from '../components/common/BaseButton.vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
 
 interface Plan {
-  name: string
-  price: string
-  period: string | null
-  badge: string
-  features: string[]
-  actionText: string
-  isPopular: boolean
-  available: boolean
+  name: string;
+  price: string;
+  period: string | null;
+  badge: string;
+  features: string[];
+  actionText: string;
+  isPopular: boolean;
+  available: boolean;
 }
 
-const router = useRouter()
-const authStore = useAuthStore()
+const router = useRouter();
+const authStore = useAuthStore();
 
 const plans: Plan[] = [
   {
@@ -27,11 +27,11 @@ const plans: Plan[] = [
     features: [
       '1 affaire complète (Mort au dernier étage)',
       'Accès au Procès-Verbal interactif',
-      'Résolution et arbitrage de base'
+      'Résolution et arbitrage de base',
     ],
-    actionText: 'Commencer l\'enquête',
+    actionText: "Commencer l'enquête",
     isPopular: false,
-    available: true
+    available: true,
   },
   {
     name: 'Inspecteur Titulaire',
@@ -42,26 +42,28 @@ const plans: Plan[] = [
       'Toutes les affaires en cours et à venir',
       'Analyses balistiques et toxicologiques avancées',
       'Mode multijoueur (enquêtes en brigade)',
-      'Génération d\'images de scènes en haute définition'
+      "Génération d'images de scènes en haute définition",
     ],
     actionText: 'Bientôt disponible',
     isPopular: true,
-    // Passe à true quand le paiement existera 
-    available: false
-  }
-]
+    // Passe à true quand le paiement existera
+    available: false,
+  },
+];
 
 function choosePlan(plan: Plan) {
-  if (!plan.available) return
-  // Visiteur non connecté 
-  router.push(authStore.isAuthenticated ? '/enquetes' : '/inscription')
+  if (!plan.available) return;
+  // Visiteur non connecté
+  router.push(authStore.isAuthenticated ? '/enquetes' : '/inscription');
 }
 </script>
 
 <template>
   <main class="w-[95%] max-w-[1000px] mx-auto my-8 font-mono">
     <div class="text-center mb-8">
-      <p class="text-xs tracking-widest text-kraft mb-1">RÉGIE DES COMPTES CRIMINELS</p>
+      <p class="text-xs tracking-widest text-kraft mb-1">
+        RÉGIE DES COMPTES CRIMINELS
+      </p>
       <h1 class="text-3xl text-cream font-normal">Grille des Habilitations</h1>
     </div>
 
@@ -72,7 +74,11 @@ function choosePlan(plan: Plan) {
             <h2 class="text-xl font-bold text-noir">{{ plan.name }}</h2>
             <span
               class="text-[10px] font-bold px-2 py-0.5 border"
-              :class="plan.isPopular ? 'border-stamp-dark text-stamp-dark rotate-2' : 'border-noir text-noir'"
+              :class="
+                plan.isPopular
+                  ? 'border-stamp-dark text-stamp-dark rotate-2'
+                  : 'border-noir text-noir'
+              "
             >
               {{ plan.badge }}
             </span>
@@ -80,12 +86,24 @@ function choosePlan(plan: Plan) {
 
           <div class="text-3xl font-bold text-noir mb-6">
             {{ plan.price }}
-            <span v-if="plan.period" class="text-xs font-normal text-[#635747]">{{ plan.period }}</span>
+            <span
+              v-if="plan.period"
+              class="text-xs font-normal text-[#635747]"
+              >{{ plan.period }}</span
+            >
           </div>
 
-          <ul class="flex flex-col gap-3 text-xs text-[#332d27] mb-8 min-h-[120px]">
-            <li v-for="(feat, idx) in plan.features" :key="idx" class="flex items-start gap-2">
-              <span class="text-stamp-dark font-bold" aria-hidden="true">✓</span>
+          <ul
+            class="flex flex-col gap-3 text-xs text-[#332d27] mb-8 min-h-[120px]"
+          >
+            <li
+              v-for="(feat, idx) in plan.features"
+              :key="idx"
+              class="flex items-start gap-2"
+            >
+              <span class="text-stamp-dark font-bold" aria-hidden="true"
+                >✓</span
+              >
               <span>{{ feat }}</span>
             </li>
           </ul>
