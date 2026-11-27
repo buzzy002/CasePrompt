@@ -52,6 +52,23 @@ describe('Sign-up (e2e)', () => {
       .expect(409);
   });
 
+  it('refuses the same email with other case or spaces', () => {
+    return request(app.getHttpServer())
+      .post('/auth/register')
+      .send({ email: `  ${email.toUpperCase()} `, password })
+      .expect(409);
+  });
+
+  it('stores the email trimmed and lowercased', async () => {
+    const other = `test-${randomUUID()}@test.fr`;
+    const res = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({ email: ` ${other.toUpperCase()}  `, password })
+      .expect(201);
+    expect(res.body.email).toBe(other);
+    await prisma.user.delete({ where: { email: other } });
+  });
+
   it('refuses a bad email or a short password, in French', async () => {
     const res = await request(app.getHttpServer())
       .post('/auth/register')
@@ -126,6 +143,13 @@ describe('Login (e2e)', () => {
       accessToken: expect.any(String),
       expiresIn: 86400,
     });
+  });
+
+  it('accepts the email with other case or spaces', () => {
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: ` ${email.toUpperCase()} `, password })
+      .expect(200);
   });
 
   it('refuses a wrong password and an unknown email with the same message', async () => {
