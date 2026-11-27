@@ -4,6 +4,7 @@ import { AuthorizationModule } from '@nestjs/authorization';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
+import { readJwtSecret } from './auth/jwt-secret.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { UsersModule } from './users/users.module.js';
 
@@ -15,7 +16,8 @@ import { UsersModule } from './users/users.module.js';
     AuthenticationModule.forRootAsync({
       useFactory: () => ({
         accessToken: {
-          key: process.env.JWT_SECRET!,
+          // Throws when JWT_SECRET is missing or too short: the API does not start.
+          key: readJwtSecret(),
           issuer: 'case-prompt',
           audience: 'api',
           ttl: '1d',
